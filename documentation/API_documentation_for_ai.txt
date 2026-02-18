@@ -1,0 +1,672 @@
+Overview
+Before we start the tutorial, a few things to note:
+
+Code tinted green like this should be included into the mod this tutorial is going to create; If the reader follows along with it. The best way to do this is to copy and paste, to ensure faithful reproduction.
+Whenever code is added to the mod, a Lua comment with the file name will be at the beginning of the green box. Place the code in the box into that file. Eg:
+--control.lua
+Code tinted purple like this should not be included into the mod, it's just for educational/example purposes, and to boost understanding.
+This tutorial was updated to version 2.0, so any viewers in the future should take note that some minor changes may have been made, and should look at the changelogs up to the current version.
+
+Terminology used in modding
+Before we start the tutorial, a few terms and definitions should be laid out, to ensure the reader understands.
+
+Mod
+A script or series of scripts that allow modifications to the game through the API.
+Entity
+An entity in Factorio is anything in the game that is not a concept, event, or tile. Examples of entities include the character, an assembling machine, a biter, etc. This can be 'machines' or free-moving objects like the character.
+Character
+The actual entity that the player manipulates the world through.
+Player
+All the data that defines a player, such as username, online time or the current zoom level.
+Prototype
+A prototype describes an instance of an entity, item or recipe etc, a bit like a template. It defines stats, like what an entity actually is, an item's stack size, a recipe's ingredients etc. A prototype is used to create an instance of an entity/item/etc, and many functionally identical entities/items/etc will use the same prototype.
+Surface
+A surface is a bit like a dimension. It is composed of terrain, such as grass, sand, and water, and all the entities on the surface. By default, there is only one surface in Factorio, referred to internally as "nauvis", or game.surfaces[1], but mods may create additional surfaces through the API.
+Event
+An event is a recurring...event, that is triggered internally by the game. There are several events that mods may connect functions to, such as on_entity_died, etc. More on this in the control scripting section.
+Item
+Items are what is moved around in inventories, by inserters and on belts, etc. Each item in-game is an instance of the respective item prototype.
+More terminology may be declared and defined later in this tutorial.
+
+Before beginning to mod
+Before we can start modding Factorio, we must understand what Factorio is. You may be tempted to answer in lieu of the about page, but that is what a player would say. Since we are trying to become a modder, we need a more detailed explanation. Factorio is a game that is coded in the language C++, with an API provided by Wube (the developers of Factorio) to mod Factorio in the programming language Lua (version 5.2.1). This API allows adding scripts to the Factorio init process, to modify it without the source code of the base game being exposed, or modifying memory. This may be different than other games that offer modding, but this is a more professional and proper way of supporting modding.
+
+To aid in the use of this API, the devs have kindly provided fairly comprehensive documentation of mods on at their API doc site. Get used to using this site, as you will be frequently visiting it while you develop mods. The scripting API site contains information on Factorio's classes and information on events that you can hook into. The prototype documentation contains and links to information all around prototypes, listing their inheritance structure and their properties. You will need to check this site often, so the author recommends bookmarking it. In addition to this site, there are also many resources to be found created by the community, such as this tutorial.
+
+Setup
+The best way to develop a mod is to develop it in a place where it can be easily tested. When the tutorial gets to making the mod, this will be explained further. Additionally, using an editor that allows ease of typing and Lua language support is recommended. Emacs, Vim, Sublime Text, VSCode, and Notepad++ are all viable candidates.
+
+How Factorio loads mods
+Load order
+Within stages, mods are loaded by dependency, then by alphabetical order. This is very important to understand, as it can cause you problems if you neglect it and try to add inter-mod support to your mod.
+
+Factorio has three kinds of dependencies. There are required dependencies, and optional dependencies. The third kind, restrictive dependencies, does not affect mod order and instead prevents the game from loading if the other mod is found. Required dependencies are loaded first, always. The game will fail to initialize if one of these is not present. Optional dependencies are loaded first if present, but do not have to be present. This is useful for enabling bonus features if mods are used together. Required dependencies should be used for mod libraries, and similar infrastructure.
+
+The settings stage
+The very first mod stage that is loaded when Factorio initializes is the settings stage. This stage is used to define all mod settings that are later shown in the in-game mod settings GUI, and has no other functions or possibilities. When running through this stage, the game looks through all mods for a file called settings.lua. After settings.lua has been executed for all mods, each mod's settings-updates.lua is executed, and finally each mod's settings-final-fixes.lua is called. These 3 different phases of the settings stage allow to change settings of other mods without needing to rely on dependencies to load last. All other files to be loaded will need to be required. All the files run here should contain nothing but setting definitions and code to produce setting definitions.
+
+The settings stage does not have access to prototype or runtime data because it is loaded before those stages. The settings are expected to have a certain format, and all additional code will be discarded once the stage is over.
+
+Mod settings are not covered in this tutorial, see Tutorial:Mod settings for further info on them.
+
+The data stage
+This is the most restricted part of the Factorio init, there's not much you can do here other than declare prototypes for technologies, entities, items and more. Things like manipulating files, affecting the world, etc, are blocked/unavailable. In fact, any functions or changes made will be discarded, as the lua session is terminated. You also cannot mess with the data table, it will error or be ignored. When using data:extend({}), it expects a specific format, more on this later.
+
+When running through this stage, the game looks through all mods for a file called data.lua. After data.lua has been executed for all mods, each mod's data-updates.lua is executed, and finally each mod's data-final-fixes.lua is called. These 3 different phases of the data stage allow to change data of other mods without needing to rely on dependencies to load last. For example, the base mod creates barrelling recipes for all (then present) fluids in data-updates.lua. This means that if you add a fluid in data.lua, the base mod's data-updates.lua will add barreling recipes for it, regardless of whether your mod depends on base. Of course this also means that if you add a fluid in data-final-fixes.lua, it is created after the barrelling code runs in data-updates.lua, so no barrelling recipe gets created, even when desired. Because of this and similar mod interactions, it is recommended to create prototypes as early as possible. So, don't use data-final-fixes.lua to exclude a fluid from barreling, instead create it in data.lua and utilize "auto_barrel = false" on the fluid.
+
+All other files to be loaded will need to be required. All the files run here should contain nothing but prototype definitions and code to produce prototype definitions. More on requiring files later.
+
+All prototypes are documented on the modding API documentation website: Prototype documentation.
+
+Migrations
+Migrations are scripts that are used to "fix" a save after a mod updates. Whenever prototype names change within a mod, migrations must be setup to replace all the old instances of the prototyped entity in the world. This must be done for all updated entities, or the old entities will be removed from the world, which is an unprofessional fallback that makes users dislike you. While this tutorial will not discuss migrations, there are many resources on migrations to be found around the community, and the API site.
+
+To avoid having to write migrations, avoid changing prototype names and technology unlocks after shipping the mod out to the public. Additionally, prototype names cannot be dynamically migrated because migrations are just a static list of names. Try to come up with a finalized version of prototype names that you can base the mod around. Of course, migrations are unnecessary if the user simply starts a new world with each mod update, but do not expect the community to do this.
+
+Runtime stage
+Within most mods is a file called control.lua. This file contains scripting that makes the mod do things during the game, rather than just adding entities to the game. During this stage, each mod's control.lua is run, in it's own lua instance (this means no inter-communication without special setup) which it will own for the rest of the play session. During the play session, access to all tables provided by the game can be done inside of event handlers. (More on those below.) Because the control.lua is run every time a save file is created or loaded you don't need to restart the game to see changes made to the control.lua file. Simply restarting or reloading a save will re-run this stage. There are a few other caveats to this stage, reading the data life cycle page on the API site provides the best overview.
+
+The control stage documented is documented on lua-api.factorio.com.
+
+The major components to any Factorio mod
+Within the average mod, there are several components that make the mod function.
+
+Mods that define new entities will need to declare these entities in data.lua, data-updates.lua, data-final-fixes.lua.
+
+Mods with in-game effects will also need a control.lua file, to add scripting.
+
+Mods with configurable user settings will use settings.lua to describe those settings.
+
+Mods that define any game element with a readable name may also provide a locale directory and subdirectories with names/descriptions in one or more languages.
+
+The mod that we'll make in this tutorial will include both data.lua prototypes and control.lua scripting, to give you a feel for both.
+
+The tutorial mod
+And now for the moment you've been waiting for. Let's start making your first mod. You'll need:
+
+A recent install of Factorio
+A text editor, such as Emacs, Vim, Sublime Text, VSCode, or Notepad++.
+An understanding of the tutorial above
+An understanding of Lua as a programming language. Enough to know the syntax and how it works. If you have prior programming experience, it should not be difficult to pick up.
+Once you have all of these things, we can begin.
+
+For this mod, we're going to make a set of armor that leaves behind damaging fire behind you as you walk. It will be fully resistant to fire, but weaker towards physical damage than heavy armor, making it an armor for hit and run attacks.
+
+Creation of the directory structure
+The game expects mod to be laid out in a certain way. To start out, create a folder in your user data directory/mods folder. This folder must have a specific name, fire-armor. You don't need to zip anything for now, that will come later when you're done working on the mod. When you're finished, the mod directory should look like this:
+
+(user data directory, sometimes called .factorio)
+mods
+fire-armor
+Then, inside fire-armor, create two files, info.json and data.lua. The directory should now look like:
+
+(user data directory, sometimes called .factorio)
+mods
+fire-armor
+data.lua
+info.json
+The info.json file
+Then, inside info.json, copy and paste the following into it:
+
+{
+  "name": "fire-armor",
+  "version": "0.1.0",
+  "title": "Fire Armor",
+  "author": "You",
+  "factorio_version": "2.0",
+  "dependencies": ["base >= 2.0"],
+  "description": "This mod adds in fire armor that leaves behind damaging fire as you walk around."
+}
+To explain each field:
+
+Item	Explanation
+name	This is the internal name of your mod, it is used to identify your mod in code.
+version	This is the version of your mod. This can be anything you want, provided it's a of the format "number.number.number".
+title	The pretty title of your mod, this will be displayed on the mods screen and when you submit it to the mod portal.
+author	Your name! You can change this in the example above.
+factorio_version	This tells the game what version the mod is for, this must match the version you're developing the mod for, 2.0 in this case.
+dependencies	Any dependencies of your mod.
+description	A short description of your mod, which appears in game. The mod portal is better for a long description.
+And that's all for info.json!
+
+Prototype creation
+Now, there are two ways to create prototypes in Factorio. There's the short way, and the long way. One way requires to create a complete prototype definition based on the documentation. Another way uses a Lua function to copy and modify an already existing definition. For the sake of this tutorial, we'll do it both ways.
+
+In the data.lua file, copy and paste the following:
+
+--data.lua
+
+local fireArmor = table.deepcopy(data.raw["armor"]["heavy-armor"]) -- copy the table that defines the heavy armor item into the fireArmor variable
+
+fireArmor.name = "fire-armor"
+fireArmor.icons = {
+  {
+    icon = fireArmor.icon,
+    icon_size = fireArmor.icon_size,
+    tint = {r=1,g=0,b=0,a=0.3}
+  },
+}
+
+fireArmor.resistances = {
+  {
+    type = "physical",
+    decrease = 6,
+    percent = 10
+  },
+  {
+    type = "explosion",
+    decrease = 10,
+    percent = 30
+  },
+  {
+    type = "acid",
+    decrease = 5,
+    percent = 30
+  },
+  {
+    type = "fire",
+    decrease = 0,
+    percent = 100
+  }
+}
+
+-- create the recipe prototype from scratch
+local recipe = {
+  type = "recipe",
+  name = "fire-armor",
+  enabled = true,
+  energy_required = 8, -- time to craft in seconds (at crafting speed 1)
+  ingredients = {
+    {type = "item", name = "copper-plate", amount = 200},
+    {type = "item", name = "steel-plate", amount = 50}
+  },
+  results = {{type = "item", name = "fire-armor", amount = 1}}
+}
+
+data:extend{fireArmor, recipe}
+
+What we've just done here is we've copied the definition of the heavy armor item, then changed its properties, and injected it into the Factorio init with data:extend. The first line of code is probably the most interesting. table.deepcopy copies a table fully into another table. We do this from data.raw. The data part is a table, which will be used by the game to setup the Factorio universe. In fact, it contains the function extend(self, prototypes) and a table called raw. The former is a customary way to add new stuff to the latter. It is actually data.raw that holds the prototypes for the game. (You can view the implementation in the file /factorio/data/core/lualib/dataloader.lua). It is important to note that data.raw only exists during the data loading stage of the game. During the control stage, when the game is running and being played, you cannot read this data; instead you read processed values through the API from the various types like LuaEntityPrototype.
+
+In addition to defining the item prototype, we also define a recipe for it. This is necessary if you want to be able to craft the thing. We also set it to enabled so it doesn't need a technology to unlock.
+
+More on data.raw
+When Factorio initializes, all prototypes are put into a table called data.raw. This table holds all prototype types, and within those types, individual prototypes identified by name: local prototype = data.raw["prototype-type"]["internal-name"]. You saw earlier how we deepcopied from the definition of heavy armor, and modified some fields. In fact, let's go over each part of the deepcopy line:
+
+local fireArmor = table.deepcopy(data.raw["armor"]["heavy-armor"])
+We assign a variable called fireArmor that holds our copy of the heavy armor definition. Notice how in data.raw, there is a type table that holds all armors, and the specific armor we're looking for is called heavy-armor. We can find heavy armor's prototype type and internal name in the infobox of its page on this wiki and just copy it from there.
+Alternatively, we can find the items prototype type and internal name by opening the game, inserting the item into our inventory and then pressing SHIFT + CTRL  + F while hovering over the item. This will open the prototype explorer GUI, which has rows showing the name and type of the item.
+
+As another example, the character's prototype would be, according to the infobox on the page:
+
+data.raw["character"]["character"]
+Because the character is the character, his type matches his name. You could define a new character with a mod. You can see all the available prototype fields of the character in the documentation: CharacterPrototype.
+
+You may be thinking at this point, "Can I modify Factorio's existing prototypes without making new ones?" Well, the answer is yes! You would simply access the data.raw table during init, in data-final-fixes.lua if you want to run after all other mods, and change a property. For example, make the iron chest instead have 1000 health:
+
+data.raw["container"]["iron-chest"].max_health = 1000
+The reason why this code is in data-final-fixes.lua is because that is the last file run, after all mod files have been run. This prevents (to a degree) your changes from being messed with by other mods. Of course, it is still possible to have incompatibilities. You should note any that you know of in your mod's description. Again, the dev's documentation on this should be looked at.
+
+This can also be applied to other mods, not just Factorio's base. You could mod a mod, as long as you add the mod (that you modified with your mod) to your dependencies so it gets loaded first.
+
+The control scripting
+And now, to finalize the mod, we have to make it be more than just simple armor. Let's think about what we want the armor to do. We want the armor to create fire on the ground as we walk with the armor on. The event we're going to use is called on_player_changed_position, since we want the fire to be created when the player moves.
+
+In our mod folder, create a file called control.lua. The game will automatically execute this file, so requiring it is not necessary.
+
+Inside control.lua, copy and paste the following:
+
+--control.lua
+
+script.on_event(defines.events.on_player_changed_position,
+  function(event)
+    local player = game.get_player(event.player_index) -- get the player that moved            
+    -- if they're currently controlling the character
+    if player.controller_type == defines.controllers.character then
+      -- and wearing our armor
+      if player.get_inventory(defines.inventory.character_armor).get_item_count("fire-armor") >= 1 then
+        -- create the fire where they're standing
+        player.surface.create_entity{name="fire-flame", position=player.position, force="neutral"}
+      end
+    end
+  end
+)
+
+I've used lua comments in the code above to explain each step. It's fairly easy to understand, and it shows how you would get the current armor that the player character is wearing, with defines.inventory.character_armor, which is an inventory constant. You can read the list of defines here.
+
+Locale
+If you've already tried loading up Factorio and trying the mod so far (which you can at this point without it crashing), you may have noticed that the item name of the armor says "Unknown key". This means that Factorio has the internal name, but it doesn't know what it should look like to the user. So, we need to create a locale for our mod.
+
+In the mod folder, create a folder called locale, then create another folder inside that called en, then a file called any_name_can_be_here.cfg.
+
+If you know another language, you can also translate your mod by making other language code files inside locale, such as de for German.
+
+Inside the .cfg file, paste the following:
+
+
+[item-name]
+fire-armor=Fire armor
+
+[item-description]
+fire-armor=An armor that seems to catch the ground itself on fire when you take a step. It's warm to the touch.
+Notice how this is not a lua file. Locale is handled with C config files, so the format is different.
+
+The finished tutorial mod
+Well, the mod is finished. Since this mod is only a tutorial, there isn't much balance to it.
+
+If you want to share a mod with other users, it needs to be a zip file. For that, simply zip the fire-armor folder and then rename the archive to fire-armor_0.1.0 so that it follows the expected mod zip name pattern of mod-name_version. Keep in mind to not submit this tutorial mod to the mod portal as your own, since it's from the Wiki.
+
+However, you're free to take this mod and modify it for your own use, changing recipes, adding technologies, whatever.
+
+Extended learning
+One of the best ways to learn how to mod beyond this is to look at other mods. The Tutorial:Inspecting a live mod is a good starting point for touring a particularly well-commented mod. As all mods can be opened and inspected, looking at the mods of experienced modders can help significantly when making your own mod.
+
+Something you'll see a lot in other mods or the base game are require statements. These load other files, so you can split up long code files and organize your mod however you like.
+
+For example, if you wanted to put some of your data stage code into a file called "foo.lua" in a folder called "bar", your mod folder would look like this:
+
+fire-armor
+bar
+foo.lua
+data.lua
+control.lua
+info.json
+And you would need to add this to data.lua:
+
+require("bar.foo")
+Keeping your mod working
+As Factorio evolves, things will change. Previously, you probably ignored the modding part of the changelog, you now need to read it and see if any changes affect your mod(s). If so, you'll need to fix them. If there's something wrong with your mod, the game will fail to init and explain why.
+
+Resolving common errors in modding
+As you continue to write mods from scratch instead of from a tutorial, you may encounter the infamous error. There are several types of errors that you can encounter in modding Factorio, and knowing how to deal with these errors will allow you to continue working.
+
+Syntax errors
+The Lua programming language expects things to be laid out a certain way. If you miss a bracket, = sign, or dot, you will encounter a syntax error. As an example, see the error below:
+
+Failed to load mod "fire-armor": __fire-armor__/data.lua:39: unfinished string near '"fire-armor,'
+You'll see an error like the one above whenever you make a syntax error within the prototype definitions. The game will offer to restart, disable the troubling mod, disable all mods, or exit. Let's dissect the error, shall we?
+
+Right away, we see the reason why Factorio didn't start normally. "Failed to load mod "fire-armor":". So, we know that it's our mod that messed up. Whenever the Lua engine of Factorio has a syntax error, it will print a mini stack-trace that follows through all requires, listing the call order. First, we see that the problem was caused by line 39 of data.lua. After stating where it is line-wise, it will attempt to give you an estimate of where in the line the problem is. Don't trust this estimate, only roughly trust the line number, plus or minus a few lines.
+
+Going to line 39 of data.lua, we find:
+
+  name = "fire-armor,
+Hmm, that doesn't look right. Can you see what's missing? We left off an " after armor before the comma. Thus, syntax error. Fixing these can be difficult for new programmers, who don't know what to look for.
+
+Illogical actions, indexing nil
+In lua, "nothing" is defined as the keyword nil. This is similar to null in other programming languages. Whenever the programmer tries to access something in a table that is nil, they will get an error like the following:
+
+Error while running event fire-armor::on_player_changed_position (ID 82)
+__fire-armor__/control.lua:3: attempt to index field '?' (a nil value)
+The "attempt to index field ..." error is often caused by the modder making an assumption that didn't work out. These types of errors will always be identifiable by their signature line, "attempt to index field". If we look at line 3 of control.lua (where the error is), we see:
+
+game.print(game.players[23])
+What assumption has the modder made here? Well, there's actually two problems with this line. The first thing is that the modder has assumed that game.players[23] is a valid player, which isn't the case; this is why we get the "index field '?'" bit. The game doesn't know what the field is that we tried to index, because it hasn't been created yet. These errors are difficult to debug unless you know the ins and outs of the modding API well.
+
+The second issue is a lot more subtle, and won't work. The modder is attempting to print a userdata table. A player is a table of several values. Trying to print it simply print "LuaPlayer" instead of providing useful data.
+
+Error while running event
+Another common type of error in Factorio is the "Error while running event" error. This type of error only happens in control.lua scripting, and it happens when something goes wrong in an event function, such as a syntax error. Note that syntax errors in control.lua do not stop the game from starting, but may trigger after a save is loaded. There are a great deal of errors under this broad category, here's an example:
+
+Error while running event fire-armor::on_player_changed_position (ID 82)
+Unknown entity name: fire-flam
+stack traceback:
+__fire-armor__/control.lua:7: in function <__fire-armor__/control.lua:2>
+As you saw with the prototypes syntax error, Factorio gives a small traceback and the error name itself. In this case, we've attempted to spawn an entity called "fire-flam" on line 7 of control.lua, inside of an on_player_changed_position event hook. Fire-flam isn't a real entity type, so we crashed.
+
+These types of errors can range from being a simple fix (like the one above, add the missing e), or can be very difficult.
+
+Internal errors
+The most rare form of error and the worst form is the internal error. This is an error with the C++ code of the game, and there's nothing you can do but report it to the devs. Mods occasionally cause these, and almost all of them are considered bugs, as mods should not be able to cause these, if that makes sense. They often get thrown into the logs.
+
+An example:
+
+696.148 Error FlowStatistics.cpp:236: FlowStatistics attempted to save value larger than uint16 as uint16. Exiting to prevent save corruption.
+Logger::writeStacktrace skipped.
+696.148 Error CrashHandler.cpp:190: Map tick at moment of crash: 432029
+696.148 Error Util.cpp:97: Unexpected error occurred. If you're running the latest version of the game you can help us solve the problem by posting the contents of the log file on the Factorio forums.
+Please also include the save file(s), any mods you may be using, and any steps you know of to reproduce the crash.
+Multiplayer and desyncs
+The reader may be wondering at this point how Factorio handles multiplayer with mods. It's fairly simple, but is still worth considering.
+
+Factorio is deterministic, which means that when you provide a constant input, you get a constant output, with no variance. Every client and the server all reach the same points at the same time in simulation, so they all agree on what happened. When this differs, the players experience a desync.
+
+Desync
+Misalignment with server and clients. Client 1 expected A, but got B. All other clients got A. Thus, Client 1 will desync. Desync can also happen when all clients have information (for example a variable) but a client that recently joined the game doesn't. That client will be desynced.
+See also: Desynchronization
+Desyncs happen a lot to new devs of Factorio mods, because they are unaware that a particular piece of code they used causes desyncs. As a general rule, there are a few things that should never be done.
+
+Use local variables that are not final outside of event hooks
+local globalLocal = 1
+script.on_event(defines.events.on_player_built_item, function()
+    globalLocal = math.random()
+end)
+If the modder places a local variable outside of an event hook that gets changed during runtime, desyncs will happen when that variable is utilised to modify the game state (i.e. manipulate an entity, print text to players). If making a "global" variable is necessary, place the variable in the storage table instead. The game syncs this table between all clients, so they can all be aware of and reach the same conclusion as each other.
+
+Conditional event subscribing
+Mods in factorio may subscribe to events in order to be notified when they happen. This allows mods to react to events when they occur. Typically, event subscription is done at the top level of a lua file.
+
+Doing event subscription inside of a conditional, function, or other event is dangerous, as doing it incorrectly will lead to desyncs. Basically, since both the server and client need to reach the same conclusion after running code, conditional subscription can lead to certain clients or the server being subscribed to an event when the others are not, causing desyncs.
+
+Improper use of on_load
+Another way to cause desyncs is to make improper actions inside of an on_load call, which some players new to modding might try to do. According to the documentation, the on_load functionality is meant for 3 purposes only:
+
+Re-register conditional event handlers
+Re-setup meta tables
+Create local references to tables stored in the storage table
+Doing anything else will cause desyncs. The game will catch most attempts, crashing instead and terminating the mod.
+
+Comparison by reference
+Be cautious of comparing tables by reference. In multiplayer syncing, tables deserialized from the server state will be new objects, not equal by reference to any table initialized by client code.
+
+if a == b then
+if a ~= b then
+If a and b are tables in the above conditionals, there will for example be different results between server and client if a is created locally and b is downloaded from the server.
+
+Note that LuaObjects provided by the game have their equality operator overwritten to prevent this behaviour, so code such as LuaEntityA ~= LuaEntityB will not desync. However, this does not apply when LuaObjects are used as keys in tables:
+
+if table[LuaObject] then
+This will desync in the same way as described for the plain tables a and b above. For entities it is recommended to use LuaEntity.unit_number as the table key instead of the whole entity.
+
+--------------------------
+Mod Settings
+
+Overview
+Each mod can specify settings that users can change. The values of these settings can be accessed from inside the data stage or the control stage depending on their setting_type and allow to conditionally create or modify prototypes and to add configuration options to control scripts. They allow modders to easily create a graphical interface for their configuration options, instead of using on text files that have to be edited manually by users.
+
+Location
+Mod settings are defined in the settings stage. This stage is loaded before the data stage. There are three files in which settings can be defined:
+
+settings.lua
+settings-updates.lua
+settings-final-fixes.lua
+First the settings.lua file is called for each mod, in the order of their dependencies and then in the natural sort order. After settings.lua has been called for all mods, the settings-updates.lua file is called for each mod (in the same order) and finally the settings-final-fixes.lua file is called for each mod (in the same order). These 3 different phases of the settings stage allow to change settings of other mods without needing to rely on dependencies to load last. The settings are all defined in the same stage and their user defined values are not available, therefore mods cannot conditionally create settings depending on the values of other mod settings. Since the settings stage gets loaded first, there is also no prototype data or remote interface available.
+
+The "mod-settings.dat" file stored in the mods folder for the game contains the local players settings between game sessions similar to the player-data.json file.
+
+Creation
+Mod settings are defined and modified by using the data table during the settings stage. This works the same way as other prototypes. An example would be:
+
+data:extend({
+    {
+        type = "bool-setting",
+        name = "my-mod-test-setting",
+        setting_type = "runtime-global",
+        default_value = true
+    }
+})
+As you can see, the setting has multiple properties. Each setting supports the following standard prototype properties:
+
+name - string - Mandatory.
+type - string - Mandatory.
+localised_name - LocalisedString - Optional.
+localised_description - LocalisedString - Optional.
+order - string - Optional.
+In addition to the standard properties, mod settings also contain:
+
+hidden - boolean - Optional.
+setting_type - string - Mandatory.
+The name property
+The name of the settings prototype should be unique to avoid mod conflicts since the mod settings are global across all mods. Because of that it is recommened to prefix mod settings with your mod name, "my-mod" in this example.
+
+The type property
+There are five types of mod settings:
+
+bool-setting - a true/false checkbox
+int-setting - a signed 64 bit integer textfield (or selection dropdown)
+double-setting - a double precision floating point textfield (or selection dropdown)
+string-setting - a string textfield (or selection dropdown)
+color-setting - a color picker (sliders), with whole number textfields. Includes alpha.
+Depending on the type, the prototype also allows or requires additional properties, these are listed below.
+
+bool-setting
+default_value - boolean - Mandatory.
+Defines the default value of the setting, in this case whether the checkbox is checked or not.
+forced_value - boolean - Optional.
+Only loaded if hidden = true. This forces the setting to be of this value. This can be useful for mod compatiblity.[1]
+int-setting
+default_value - int64 - Mandatory.
+Defines the default value of the setting.
+minimum_value - int64 - Optional.
+Defines the lowest possible number.
+maximum_value - int64 - Optional.
+Defines the highest possible number.
+allowed_values - array of int64 - Optional.
+Makes it possible to force the player to choose between the defined numbers, creates a dropdown instead of a texfield.
+If only one allowed value is given, the settings is forced to be of that value.
+double-setting
+default_value - double - Mandatory.
+Defines the default value of the setting.
+minimum_value - double - Optional.
+Defines the lowest possible number.
+maximum_value - double - Optional.
+Defines the highest possible number.
+allowed_values - array of double - Optional.
+Makes it possible to force the player to choose between the defined numbers, creates a dropdown instead of a textfield.
+If only one allowed value is given, the settings is forced to be of that value.
+string-setting
+default_value - string - Mandatory.
+Defines the default value of the setting.
+allow_blank - boolean - Optional. - Default: false
+Defines whether it's possible for the user to set the textfield to empty and apply the setting.
+auto_trim - boolean - Optional. - Default: false
+Whether values that are input by the user should have whitespace removed from both ends of the string.
+allowed_values - array of string - Optional.
+Makes it possible to force the player to choose between the defined strings, creates a dropdown instead of a textfield. The strings in the dropdown can be localized (translated) and can have a tooltip, see below.
+If only one allowed value is given, the settings is forced to be of that value.
+color-setting
+default_value - Color - Mandatory.
+Defines the default value of the setting.
+forced_value - Color - Optional.
+Only loaded if hidden = true. This forces the setting to be of this value.
+The order property
+The order property can be used to change how the mod settings are ordered in the settings gui. Mod settings are sorted
+
+first by mod
+then by the setting "order" string
+then finally by the setting name.
+For more info on how to use the order string, see Order.
+
+The hidden property
+The hidden property can be used to hide mod settings from GUIs, so that they cannot be seen or changed by players. However, other mods can still access hidden settings.[2]
+
+The setting_type property
+
+The mod settings gui. Can be reached from the main menu → Settings → Mod settings.
+There are the overall kinds of settings:
+
+startup: This kind of setting is available in the prototype stage, and can not be changed runtime. They have to be set to the same values for all players on a server.
+runtime-global: This kind of setting is global to an entire save game and can be changed runtime. On servers, only admins can change these settings.
+runtime-per-user: This kind of setting is only available runtime in the control.lua stage and each player has their own instance of this setting. When a player joins a server their local setting of "keep mod settings per save" determines if the local settings they have set are synced to the loaded save or if the save's settings are used.
+This "setting_type" also determines in which tab the setting is showed in the mod settings menu.
+
+Locale
+The locale for mod settings works like any other locale in the game. The names of the groups for the setting name and description (tooltip) are "mod-setting-name" and "mod-setting-description". The dropdown items of a string setting can be localized in the "string-mod-setting" group, but the game falls back to just showing the name of the dropdown item if no localization is found. An example for mod setting localization that would be set within "locale/en/locale.cfg", is:
+
+[mod-setting-name]
+my-mod-string-test-setting=Localized test setting name
+
+[mod-setting-description]
+my-mod-string-test-setting=Localized test setting description
+
+[string-mod-setting]
+#<setting-name>-<dropdown-item-name>=<translated dropdown item>
+my-mod-string-test-setting-item-1=Item 1 localized string
+
+[string-mod-setting-description]
+#<setting-name>-<dropdown-item-name>=<tooltip of dropdown item>
+my-mod-string-test-setting-item-1=Item 1 localized tooltip
+
+Usage
+Reading settings
+When accessing any mod setting, you will have to specifically access the value of the setting. The data type of the value depends on the type of the setting. For string settings that use a selection of allowed values, the value of the setting is one of the original string values defined in the prototype, the localization is ignored. See also: ModSetting concept.
+
+In the prototype stage you can access settings of the setting_type "startup" by indexing settings.startup with the name of the setting. Example:
+
+--in settings.lua:
+data:extend({
+    {
+        type = "int-setting",
+        name = "my-mod-stone-wall-stack-size",
+        setting_type = "startup",
+        minimum_value = 1,
+        default_value = 100
+    }
+})
+
+--in data.lua:
+data.raw.item["stone-wall"].stack_size = settings.startup["my-mod-stone-wall-stack-size"].value
+In the control stage, "runtime-global" and "runtime-per-user" are additonally available. They can be accessed as follows:
+
+"runtime-global" (the current settings, under the Map tab in Mod Settings) can be accessed using settings.global["setting-name"] (see LuaSettings).
+"runtime-per-user" are accessed using settings.get_player_settings(<PlayerIdentification>)["setting-name"] or game.players[<PlayerIdentification>].mod_settings["setting-name"].
+Example:
+
+--in settings.lua:
+data:extend({
+    {
+        type = "string-setting",
+        name = "my-mod-always-difficult",
+        setting_type = "runtime-global",
+        default_value = "yes",
+        allowed_values = {"yes", "no"}
+    },
+    {
+        type = "bool-setting",
+        name = "my-mod-kill-player-on-entity-built",
+        setting_type = "runtime-per-user",
+        default_value = false
+    }
+})
+
+--in control.lua:
+script.on_init(function()
+    if settings.global["my-mod-always-difficult"].value == "yes" then
+        game.difficulty_settings.recipe_difficulty = 1
+        game.difficulty_settings.technology_difficulty = 1
+        game.difficulty_settings.technology_price_multiplier = 4
+    end
+end)
+
+script.on_event(defines.events.on_built_entity, function(event)
+    local setting_value = settings.get_player_settings(event.player_index)["my-mod-kill-player-on-entity-built"].value
+    if setting_value then
+        game.get_player(event.player_index).die()
+    end
+end)
+Writing to your own settings
+It is possible for mods to write to their own runtime (global or per player) mod settings. This is done by writing a new ModSetting table to the setting.
+
+Example:
+
+--in settings.lua:
+data:extend({
+    {
+        type = "string-setting",
+        name = "my-mod-always-difficult",
+        setting_type = "runtime-global",
+        default_value = "yes",
+        allowed_values = {"yes", "no"}
+    }
+})
+
+--in control.lua:
+script.on_event(defines.events.on_rocket_launched, function()
+    settings.global["my-mod-always-difficult"] = {value = "yes"}
+end)
+Changing another mod's settings
+After creating a setting in the settings stage, it is stored in data.raw until the end of the stage, so it can be altered from another mod.
+
+Example:
+
+--in settings-updates.lua:
+data.raw["string-setting"]["my-mod-always-difficult"].order = "abc"
+If the intent is to force the setting to be of a certain value that cannot be modified by players, the properties hidden, allowed_values and forced_value can be used. Modifying existing settings of other mods can be useful for mod packs or other mod compatibility goals.[3]
+
+Example:
+
+--in settings-updates.lua:
+data.raw["string-setting"]["my-mod-always-difficult"].hidden = true
+data.raw["string-setting"]["my-mod-always-difficult"].allowed_values = {"no"}
+data.raw["string-setting"]["my-mod-always-difficult"].default_value = "no"
+Tips
+Do not conditionally 'require(...)' things depending on mod settings: This breaks the CRC checks and people will get errors trying to use your mod in multiplayer. 'require(...)' everything and then conditionally add the values to data.raw using the settings.
+You should cache the settings table inside the event you use it in. Accessing it is relatively expensive (about as expensive as accessing game.*prototypes[...]), so when accessing it mutliple times within the same event, you should set a local variable to it (within the event) to improve performance.
+If you want to cache startup/and runtime settings outside of events, you will have to makes sure that the local variable of settings of the setting_type "runtime-global" are updated in the on_runtime_mod_setting_changed event.
+If you want to detect whether a certain mod is installed in the settings stage, you can use if mods["another-mods-name"] then, just like in the data stage.
+
+--------------------------------------
+Prototype API 
+
+During the prototype stage, mods define custom prototypes for the engine to pick up on. They are used as templates for the machines, recipes, and more in the game engine. These templates consist of a set of properties, utilizing Types for recurring data structures. Prototypes rely on multiple levels of inheritance, which can be visualized as a tree.
+
+The prototype stage is the game's second major stage, taking place after the settings stage and before the runtime stage. All important details are explained via the Data Lifecycle.
+
+Main structures:
+
+Prototypes: Structures forming the templates for every part of the game world.
+Types: Data formats which are commonly used as parts of prototypes.
+Main global objects:
+
+data :: Data: A table that contains all prototypes. The primary way to interact with the game during the prototype stage.
+mods :: Mods: A dictionary of active mods and their versions.
+settings :: Settings: The startup mod setting values.
+feature_flags :: FeatureFlags: A dictionary of feature flags and their status.
+helpers :: LuaHelpers: Provides access to various helper and utility functions.
+Additional global objects:
+
+Defines: Content of the defines table, which contains symbolic constants used as property values.
+Libraries and functions: General Lua libraries and functions that Factorio provides or modifies.
+The prototype API documentation is also available in a machine-readable format that developer tools can use.
+
+----------------------------------------------
+Data :: struct - abstract
+The data table is read by the game to load all prototypes.
+
+At the end of the prototype stage, the data table is loaded by the game engine and the format of the prototypes is validated. Any extra properties are ignored. See Data Lifecycle for more information.
+
+The data table and its properties are defined in Lua, so their source code can be viewed in dataloader.lua.
+
+Properties
+default
+sorted
+extend	:: DataExtendMethod	
+The primary way to add prototypes to the data table.
+
+is_demo	:: boolean	
+Set by the game based on whether the demo or retail version is running. [...]
+
+raw	:: dictionary[string → dictionary[string → AnyPrototype]]	
+A dictionary of prototype types to values that themselves are dictionaries of prototype names to specific prototypes. [...]
+
+Properties
+extend :: DataExtendMethod
+The primary way to add prototypes to the data table.
+
+Example
+local not_coal =
+{
+  type = "item",
+  name = "a-thing",
+  icon = "__base__/graphics/icons/coal.png",
+  icon_size = 64,
+  stack_size = 2
+}
+local proto2 =
+{
+  type = "fuel-category",
+  name = "best-fuel"
+}
+data:extend({not_coal, proto2})
+is_demo :: boolean
+Set by the game based on whether the demo or retail version is running. Should not be used by mods.
+
+raw :: dictionary[string → dictionary[string → AnyPrototype]] 
+A dictionary of prototype types to values that themselves are dictionaries of prototype names to specific prototypes.
+
+This means that individual prototypes can be accessed with local prototype = data.raw["prototype-type"]["internal-name"].
+
+Examples
+-- set the stack size of coal to be 1000
+data.raw["item"]["coal"].stack_size = 1000
+-- get the max health of the wooden chest
+local health = data.raw["container"]["wooden-chest"].max_health

@@ -1,0 +1,480 @@
+[
+  { "type": "AmbientSound", "name": "ambient-sound" },
+  { "type": "AnimationPrototype", "name": "animation" },
+  { "type": "DeliverCategory", "name": "deliver-category" },
+  { "type": "DeliverImpactCombination", "name": "deliver-impact-combination" },
+  { "type": "EditorControllerPrototype", "name": "editor-controller" },
+  { "type": "FontPrototype", "name": "font" },
+  { "type": "GodControllerPrototype", "name": "god-controller" },
+  { "type": "ImpactCategory", "name": "impact-category" },
+  { "type": "MapGenPresets", "name": "map-gen-presets" },
+  { "type": "MapSettings", "name": "map-settings" },
+  { "type": "MouseCursor", "name": "mouse-cursor" },
+  {
+    "type": "PrototypeBase",
+    "abstract": true,
+    "children": [
+      { "type": "GuiStyle", "name": "gui-style" },
+      {
+        "type": "Prototype",
+        "abstract": true,
+        "children": [
+          {
+            "type": "AchievementPrototype",
+            "name": "achievement",
+            "children": [
+              {
+                "type": "AchievementPrototypeWithCondition",
+                "abstract": true,
+                "children": [
+                  { "type": "CompleteObjectiveAchievementPrototype", "name": "complete-objective-achievement" },
+                  { "type": "DontBuildEntityAchievementPrototype", "name": "dont-build-entity-achievement" },
+                  { "type": "DontCraftManuallyAchievementPrototype", "name": "dont-craft-manually-achievement" },
+                  { "type": "DontKillManuallyAchievementPrototype", "name": "dont-kill-manually-achievement" },
+                  { "type": "DontResearchBeforeResearchingAchievementPrototype", "name": "dont-research-before-researching-achievement" },
+                  { "type": "DontUseEntityInEnergyProductionAchievementPrototype", "name": "dont-use-entity-in-energy-production-achievement" }
+                ]
+              },
+              { "type": "BuildEntityAchievementPrototype", "name": "build-entity-achievement" },
+              { "type": "ChangedSurfaceAchievementPrototype", "name": "change-surface-achievement" },
+              { "type": "CombatRobotCountAchievementPrototype", "name": "combat-robot-count-achievement" },
+              { "type": "ConstructWithRobotsAchievementPrototype", "name": "construct-with-robots-achievement" },
+              { "type": "CreatePlatformAchievementPrototype", "name": "create-platform-achievement" },
+              { "type": "DeconstructWithRobotsAchievementPrototype", "name": "deconstruct-with-robots-achievement" },
+              { "type": "DeliverByRobotsAchievementPrototype", "name": "deliver-by-robots-achievement" },
+              { "type": "DepleteResourceAchievementPrototype", "name": "deplete-resource-achievement" },
+              { "type": "DestroyCliffAchievementPrototype", "name": "destroy-cliff-achievement" },
+              { "type": "EquipArmorAchievementPrototype", "name": "equip-armor-achievement" },
+              { "type": "GroupAttackAchievementPrototype", "name": "group-attack-achievement" },
+              { "type": "KillAchievementPrototype", "name": "kill-achievement" },
+              { "type": "ModuleTransferAchievementPrototype", "name": "module-transfer-achievement" },
+              { "type": "PlaceEquipmentAchievementPrototype", "name": "place-equipment-achievement" },
+              { "type": "PlayerDamagedAchievementPrototype", "name": "player-damaged-achievement" },
+              { "type": "ProduceAchievementPrototype", "name": "produce-achievement" },
+              { "type": "ProducePerHourAchievementPrototype", "name": "produce-per-hour-achievement" },
+              { "type": "ResearchAchievementPrototype", "name": "research-achievement" },
+              { "type": "ResearchWithSciencePackAchievementPrototype", "name": "research-with-science-pack-achievement" },
+              { "type": "ShootAchievementPrototype", "name": "shoot-achievement" },
+              { "type": "SpaceConnectionDistanceTraveledAchievementPrototype", "name": "space-connection-distance-traveled-achievement" },
+              { "type": "TrainPathAchievementPrototype", "name": "train-path-achievement" },
+              { "type": "UseEntityInEnergyProductionAchievementPrototype", "name": "use-entity-in-energy-production-achievement" },
+              { "type": "UseItemAchievementPrototype", "name": "use-item-achievement" }
+            ]
+          },
+          {
+            "type": "ActiveTriggerPrototype",
+            "abstract": true,
+            "children": [
+              { "type": "ChainActiveTriggerPrototype", "name": "chain-active-trigger" },
+              { "type": "DelayedActiveTriggerPrototype", "name": "delayed-active-trigger" }
+            ]
+          },
+          { "type": "AirbornePollutantPrototype", "name": "airborne-pollutant" },
+          { "type": "AmmoCategory", "name": "ammo-category" },
+          { "type": "AsteroidChunkPrototype", "name": "asteroid-chunk" },
+          { "type": "AutoplaceControl", "name": "autoplace-control" },
+          { "type": "BurnerUsagePrototype", "name": "burner-usage" },
+          { "type": "CollisionLayerPrototype", "name": "collision-layer" },
+          { "type": "CustomEventPrototype", "name": "custom-event" },
+          { "type": "CustomInputPrototype", "name": "custom-input" },
+          { "type": "DamageType", "name": "damage-type" },
+          { "type": "DecorativePrototype", "name": "optimized-decorative" },
+          {
+            "type": "EntityPrototype",
+            "abstract": true,
+            "children": [
+              { "type": "ArrowPrototype", "name": "arrow" },
+              { "type": "ArtilleryFlarePrototype", "name": "artillery-flare" },
+              { "type": "ArtilleryProjectilePrototype", "name": "artillery-projectile" },
+              { "type": "BeamPrototype", "name": "beam" },
+              { "type": "CharacterCorpsePrototype", "name": "character-corpse" },
+              { "type": "CliffPrototype", "name": "cliff" },
+              {
+                "type": "CorpsePrototype",
+                "name": "corpse",
+                "children": [
+                  { "type": "RailRemnantsPrototype", "name": "rail-remnants" }
+                ]
+              },
+              { "type": "DeconstructibleTileProxyPrototype", "name": "deconstructible-tile-proxy" },
+              { "type": "EntityGhostPrototype", "name": "entity-ghost" },
+              {
+                "type": "EntityWithHealthPrototype",
+                "abstract": true,
+                "children": [
+                  {
+                    "type": "EntityWithOwnerPrototype",
+                    "abstract": true,
+                    "children": [
+                      { "type": "AccumulatorPrototype", "name": "accumulator" },
+                      { "type": "AgriculturalTowerPrototype", "name": "agricultural-tower" },
+                      { "type": "ArtilleryTurretPrototype", "name": "artillery-turret" },
+                      { "type": "AsteroidCollectorPrototype", "name": "asteroid-collector" },
+                      { "type": "AsteroidPrototype", "name": "asteroid" },
+                      { "type": "BeaconPrototype", "name": "beacon" },
+                      { "type": "BoilerPrototype", "name": "boiler" },
+                      { "type": "BurnerGeneratorPrototype", "name": "burner-generator" },
+                      { "type": "CargoBayPrototype", "name": "cargo-bay" },
+                      { "type": "CargoLandingPadPrototype", "name": "cargo-landing-pad" },
+                      { "type": "CargoPodPrototype", "name": "cargo-pod" },
+                      { "type": "CharacterPrototype", "name": "character" },
+                      {
+                        "type": "CombinatorPrototype",
+                        "abstract": true,
+                        "children": [
+                          { "type": "ArithmeticCombinatorPrototype", "name": "arithmetic-combinator" },
+                          { "type": "DeciderCombinatorPrototype", "name": "decider-combinator" },
+                          { "type": "SelectorCombinatorPrototype", "name": "selector-combinator" }
+                        ]
+                      },
+                      { "type": "ConstantCombinatorPrototype", "name": "constant-combinator" },
+                      {
+                        "type": "ContainerPrototype",
+                        "name": "container",
+                        "children": [
+                          {
+                            "type": "LogisticContainerPrototype",
+                            "name": "logistic-container",
+                            "children": [
+                              { "type": "InfinityContainerPrototype", "name": "infinity-container" }
+                            ]
+                          },
+                          { "type": "TemporaryContainerPrototype", "name": "temporary-container" }
+                        ]
+                      },
+                      {
+                        "type": "CraftingMachinePrototype",
+                        "abstract": true,
+                        "children": [
+                          {
+                            "type": "AssemblingMachinePrototype",
+                            "name": "assembling-machine",
+                            "children": [
+                              { "type": "RocketSiloPrototype", "name": "rocket-silo" }
+                            ]
+                          },
+                          { "type": "FurnacePrototype", "name": "furnace" }
+                        ]
+                      },
+                      { "type": "DisplayPanelPrototype", "name": "display-panel" },
+                      { "type": "ElectricEnergyInterfacePrototype", "name": "electric-energy-interface" },
+                      { "type": "ElectricPolePrototype", "name": "electric-pole" },
+                      { "type": "EnemySpawnerPrototype", "name": "unit-spawner" },
+                      {
+                        "type": "FlyingRobotPrototype",
+                        "abstract": true,
+                        "children": [
+                          { "type": "CaptureRobotPrototype", "name": "capture-robot" },
+                          { "type": "CombatRobotPrototype", "name": "combat-robot" },
+                          {
+                            "type": "RobotWithLogisticInterfacePrototype",
+                            "abstract": true,
+                            "children": [
+                              { "type": "ConstructionRobotPrototype", "name": "construction-robot" },
+                              { "type": "LogisticRobotPrototype", "name": "logistic-robot" }
+                            ]
+                          }
+                        ]
+                      },
+                      { "type": "FusionGeneratorPrototype", "name": "fusion-generator" },
+                      { "type": "FusionReactorPrototype", "name": "fusion-reactor" },
+                      { "type": "GatePrototype", "name": "gate" },
+                      { "type": "GeneratorPrototype", "name": "generator" },
+                      { "type": "HeatInterfacePrototype", "name": "heat-interface" },
+                      { "type": "HeatPipePrototype", "name": "heat-pipe" },
+                      { "type": "InserterPrototype", "name": "inserter" },
+                      { "type": "LabPrototype", "name": "lab" },
+                      { "type": "LampPrototype", "name": "lamp" },
+                      { "type": "LandMinePrototype", "name": "land-mine" },
+                      { "type": "LightningAttractorPrototype", "name": "lightning-attractor" },
+                      { "type": "LinkedContainerPrototype", "name": "linked-container" },
+                      { "type": "MarketPrototype", "name": "market" },
+                      { "type": "MiningDrillPrototype", "name": "mining-drill" },
+                      { "type": "OffshorePumpPrototype", "name": "offshore-pump" },
+                      {
+                        "type": "PipePrototype",
+                        "name": "pipe",
+                        "children": [
+                          { "type": "InfinityPipePrototype", "name": "infinity-pipe" }
+                        ]
+                      },
+                      { "type": "PipeToGroundPrototype", "name": "pipe-to-ground" },
+                      { "type": "PlayerPortPrototype", "name": "player-port" },
+                      { "type": "PowerSwitchPrototype", "name": "power-switch" },
+                      { "type": "ProgrammableSpeakerPrototype", "name": "programmable-speaker" },
+                      { "type": "ProxyContainerPrototype", "name": "proxy-container" },
+                      { "type": "PumpPrototype", "name": "pump" },
+                      { "type": "RadarPrototype", "name": "radar" },
+                      {
+                        "type": "RailPrototype",
+                        "abstract": true,
+                        "children": [
+                          {
+                            "type": "CurvedRailAPrototype",
+                            "name": "curved-rail-a",
+                            "children": [
+                              { "type": "ElevatedCurvedRailAPrototype", "name": "elevated-curved-rail-a" }
+                            ]
+                          },
+                          {
+                            "type": "CurvedRailBPrototype",
+                            "name": "curved-rail-b",
+                            "children": [
+                              { "type": "ElevatedCurvedRailBPrototype", "name": "elevated-curved-rail-b" }
+                            ]
+                          },
+                          {
+                            "type": "HalfDiagonalRailPrototype",
+                            "name": "half-diagonal-rail",
+                            "children": [
+                              { "type": "ElevatedHalfDiagonalRailPrototype", "name": "elevated-half-diagonal-rail" }
+                            ]
+                          },
+                          { "type": "LegacyCurvedRailPrototype", "name": "legacy-curved-rail" },
+                          { "type": "LegacyStraightRailPrototype", "name": "legacy-straight-rail" },
+                          { "type": "RailRampPrototype", "name": "rail-ramp" },
+                          {
+                            "type": "StraightRailPrototype",
+                            "name": "straight-rail",
+                            "children": [
+                              { "type": "ElevatedStraightRailPrototype", "name": "elevated-straight-rail" }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "type": "RailSignalBasePrototype",
+                        "abstract": true,
+                        "children": [
+                          { "type": "RailChainSignalPrototype", "name": "rail-chain-signal" },
+                          { "type": "RailSignalPrototype", "name": "rail-signal" }
+                        ]
+                      },
+                      { "type": "RailSupportPrototype", "name": "rail-support" },
+                      { "type": "ReactorPrototype", "name": "reactor" },
+                      { "type": "RoboportPrototype", "name": "roboport" },
+                      {
+                        "type": "SegmentPrototype",
+                        "name": "segment",
+                        "children": [
+                          { "type": "SegmentedUnitPrototype", "name": "segmented-unit" }
+                        ]
+                      },
+                      {
+                        "type": "SimpleEntityWithOwnerPrototype",
+                        "name": "simple-entity-with-owner",
+                        "children": [
+                          { "type": "SimpleEntityWithForcePrototype", "name": "simple-entity-with-force" }
+                        ]
+                      },
+                      { "type": "SolarPanelPrototype", "name": "solar-panel" },
+                      { "type": "SpacePlatformHubPrototype", "name": "space-platform-hub" },
+                      { "type": "SpiderLegPrototype", "name": "spider-leg" },
+                      { "type": "SpiderUnitPrototype", "name": "spider-unit" },
+                      { "type": "StorageTankPrototype", "name": "storage-tank" },
+                      { "type": "ThrusterPrototype", "name": "thruster" },
+                      { "type": "TrainStopPrototype", "name": "train-stop" },
+                      {
+                        "type": "TransportBeltConnectablePrototype",
+                        "abstract": true,
+                        "children": [
+                          { "type": "LaneSplitterPrototype", "name": "lane-splitter" },
+                          { "type": "LinkedBeltPrototype", "name": "linked-belt" },
+                          {
+                            "type": "LoaderPrototype",
+                            "abstract": true,
+                            "children": [
+                              { "type": "Loader1x1Prototype", "name": "loader-1x1" },
+                              { "type": "Loader1x2Prototype", "name": "loader" }
+                            ]
+                          },
+                          { "type": "SplitterPrototype", "name": "splitter" },
+                          { "type": "TransportBeltPrototype", "name": "transport-belt" },
+                          { "type": "UndergroundBeltPrototype", "name": "underground-belt" }
+                        ]
+                      },
+                      {
+                        "type": "TurretPrototype",
+                        "name": "turret",
+                        "children": [
+                          { "type": "AmmoTurretPrototype", "name": "ammo-turret" },
+                          { "type": "ElectricTurretPrototype", "name": "electric-turret" },
+                          { "type": "FluidTurretPrototype", "name": "fluid-turret" }
+                        ]
+                      },
+                      { "type": "UnitPrototype", "name": "unit" },
+                      { "type": "ValvePrototype", "name": "valve" },
+                      {
+                        "type": "VehiclePrototype",
+                        "abstract": true,
+                        "children": [
+                          { "type": "CarPrototype", "name": "car" },
+                          {
+                            "type": "RollingStockPrototype",
+                            "abstract": true,
+                            "children": [
+                              { "type": "ArtilleryWagonPrototype", "name": "artillery-wagon" },
+                              {
+                                "type": "CargoWagonPrototype",
+                                "name": "cargo-wagon",
+                                "children": [
+                                  { "type": "InfinityCargoWagonPrototype", "name": "infinity-cargo-wagon" }
+                                ]
+                              },
+                              { "type": "FluidWagonPrototype", "name": "fluid-wagon" },
+                              { "type": "LocomotivePrototype", "name": "locomotive" }
+                            ]
+                          },
+                          { "type": "SpiderVehiclePrototype", "name": "spider-vehicle" }
+                        ]
+                      },
+                      { "type": "WallPrototype", "name": "wall" }
+                    ]
+                  },
+                  { "type": "FishPrototype", "name": "fish" },
+                  { "type": "SimpleEntityPrototype", "name": "simple-entity" },
+                  {
+                    "type": "TreePrototype",
+                    "name": "tree",
+                    "children": [
+                      { "type": "PlantPrototype", "name": "plant" }
+                    ]
+                  }
+                ]
+              },
+              { "type": "ExplosionPrototype", "name": "explosion" },
+              { "type": "FireFlamePrototype", "name": "fire" },
+              { "type": "FluidStreamPrototype", "name": "stream" },
+              { "type": "HighlightBoxEntityPrototype", "name": "highlight-box" },
+              { "type": "ItemEntityPrototype", "name": "item-entity" },
+              { "type": "ItemRequestProxyPrototype", "name": "item-request-proxy" },
+              { "type": "LightningPrototype", "name": "lightning" },
+              { "type": "ParticleSourcePrototype", "name": "particle-source" },
+              { "type": "ProjectilePrototype", "name": "projectile" },
+              { "type": "ResourceEntityPrototype", "name": "resource" },
+              { "type": "RocketSiloRocketPrototype", "name": "rocket-silo-rocket" },
+              { "type": "RocketSiloRocketShadowPrototype", "name": "rocket-silo-rocket-shadow" },
+              {
+                "type": "SmokePrototype",
+                "abstract": true,
+                "children": [
+                  { "type": "SmokeWithTriggerPrototype", "name": "smoke-with-trigger" }
+                ]
+              },
+              { "type": "SpeechBubblePrototype", "name": "speech-bubble" },
+              { "type": "StickerPrototype", "name": "sticker" },
+              { "type": "TileGhostPrototype", "name": "tile-ghost" }
+            ]
+          },
+          { "type": "EquipmentCategory", "name": "equipment-category" },
+          { "type": "EquipmentGridPrototype", "name": "equipment-grid" },
+          {
+            "type": "EquipmentPrototype",
+            "abstract": true,
+            "children": [
+              { "type": "ActiveDefenseEquipmentPrototype", "name": "active-defense-equipment" },
+              { "type": "BatteryEquipmentPrototype", "name": "battery-equipment" },
+              { "type": "BeltImmunityEquipmentPrototype", "name": "belt-immunity-equipment" },
+              { "type": "EnergyShieldEquipmentPrototype", "name": "energy-shield-equipment" },
+              { "type": "EquipmentGhostPrototype", "name": "equipment-ghost" },
+              { "type": "GeneratorEquipmentPrototype", "name": "generator-equipment" },
+              { "type": "InventoryBonusEquipmentPrototype", "name": "inventory-bonus-equipment" },
+              { "type": "MovementBonusEquipmentPrototype", "name": "movement-bonus-equipment" },
+              { "type": "NightVisionEquipmentPrototype", "name": "night-vision-equipment" },
+              { "type": "RoboportEquipmentPrototype", "name": "roboport-equipment" },
+              { "type": "SolarPanelEquipmentPrototype", "name": "solar-panel-equipment" }
+            ]
+          },
+          { "type": "FluidPrototype", "name": "fluid" },
+          { "type": "FuelCategory", "name": "fuel-category" },
+          { "type": "ItemGroup", "name": "item-group" },
+          {
+            "type": "ItemPrototype",
+            "name": "item",
+            "children": [
+              { "type": "AmmoItemPrototype", "name": "ammo" },
+              { "type": "CapsulePrototype", "name": "capsule" },
+              { "type": "GunPrototype", "name": "gun" },
+              { "type": "ItemWithEntityDataPrototype", "name": "item-with-entity-data" },
+              {
+                "type": "ItemWithLabelPrototype",
+                "name": "item-with-label",
+                "children": [
+                  {
+                    "type": "ItemWithInventoryPrototype",
+                    "name": "item-with-inventory",
+                    "children": [
+                      { "type": "BlueprintBookPrototype", "name": "blueprint-book" }
+                    ]
+                  },
+                  { "type": "ItemWithTagsPrototype", "name": "item-with-tags" },
+                  {
+                    "type": "SelectionToolPrototype",
+                    "name": "selection-tool",
+                    "children": [
+                      { "type": "BlueprintItemPrototype", "name": "blueprint" },
+                      { "type": "CopyPasteToolPrototype", "name": "copy-paste-tool" },
+                      { "type": "DeconstructionItemPrototype", "name": "deconstruction-item" },
+                      { "type": "SpidertronRemotePrototype", "name": "spidertron-remote" },
+                      { "type": "UpgradeItemPrototype", "name": "upgrade-item" }
+                    ]
+                  }
+                ]
+              },
+              { "type": "ModulePrototype", "name": "module" },
+              { "type": "RailPlannerPrototype", "name": "rail-planner" },
+              { "type": "SpacePlatformStarterPackPrototype", "name": "space-platform-starter-pack" },
+              {
+                "type": "ToolPrototype",
+                "name": "tool",
+                "children": [
+                  { "type": "ArmorPrototype", "name": "armor" },
+                  { "type": "RepairToolPrototype", "name": "repair-tool" }
+                ]
+              }
+            ]
+          },
+          { "type": "ItemSubGroup", "name": "item-subgroup" },
+          { "type": "ModData", "name": "mod-data" },
+          { "type": "ModuleCategory", "name": "module-category" },
+          { "type": "NamedNoiseExpression", "name": "noise-expression" },
+          { "type": "NamedNoiseFunction", "name": "noise-function" },
+          { "type": "ParticlePrototype", "name": "optimized-particle" },
+          { "type": "ProcessionLayerInheritanceGroup", "name": "procession-layer-inheritance-group" },
+          { "type": "ProcessionPrototype", "name": "procession" },
+          { "type": "QualityPrototype", "name": "quality" },
+          { "type": "RecipeCategory", "name": "recipe-category" },
+          { "type": "RecipePrototype", "name": "recipe" },
+          { "type": "ResourceCategory", "name": "resource-category" },
+          { "type": "ShortcutPrototype", "name": "shortcut" },
+          { "type": "SpaceConnectionPrototype", "name": "space-connection" },
+          {
+            "type": "SpaceLocationPrototype",
+            "name": "space-location",
+            "children": [
+              { "type": "PlanetPrototype", "name": "planet" }
+            ]
+          },
+          { "type": "SurfacePropertyPrototype", "name": "surface-property" },
+          { "type": "SurfacePrototype", "name": "surface" },
+          { "type": "TechnologyPrototype", "name": "technology" },
+          { "type": "TilePrototype", "name": "tile" },
+          { "type": "TrivialSmokePrototype", "name": "trivial-smoke" },
+          { "type": "VirtualSignalPrototype", "name": "virtual-signal" }
+        ]
+      },
+      { "type": "TipsAndTricksItem", "name": "tips-and-tricks-item" },
+      { "type": "TutorialDefinition", "name": "tutorial" },
+      { "type": "UtilityConstants", "name": "utility-constants" },
+      { "type": "UtilitySounds", "name": "utility-sounds" },
+      { "type": "UtilitySprites", "name": "utility-sprites" }
+    ]
+  },
+  { "type": "RemoteControllerPrototype", "name": "remote-controller" },
+  { "type": "SoundPrototype", "name": "sound" },
+  { "type": "SpectatorControllerPrototype", "name": "spectator-controller" },
+  { "type": "SpritePrototype", "name": "sprite" },
+  { "type": "TileEffectDefinition", "name": "tile-effect" },
+  { "type": "TipsAndTricksItemCategory", "name": "tips-and-tricks-item-category" },
+  { "type": "TriggerTargetType", "name": "trigger-target-type" }
+]
