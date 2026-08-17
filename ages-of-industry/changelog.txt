@@ -1,0 +1,8 @@
+---------------------------------------------------------------------------------------------------
+Version: 0.0.1
+Date: 2026-08-17
+  Major Features:
+    - Initial data-stage skeleton: items, recipes, entities, and technologies
+      for all six Ages (Stone, Agricultural, Bronze, Iron, Industrial,
+      Information).
+---------------------------------------------------------------------------------------------------
