@@ -1,6 +1,6 @@
 -- file: data-final-fixes.lua
-for type_name, prototypes in pairs(data.raw) do
-    for name, prototype in pairs(prototypes) do
-        log(type_name .. " - " .. name)
-    end
-end
+-- Reserved for adjusting OTHER mods' prototypes for compatibility (per
+-- Factorio's data lifecycle: data-final-fixes.lua should not define this
+-- mod's own content -- that belongs in data.lua/prototypes/*.lua).
+-- Currently unused -- Ages of Industry has no other-mod compatibility
+-- patches yet.
